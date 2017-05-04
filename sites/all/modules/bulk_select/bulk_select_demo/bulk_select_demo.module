@@ -1,0 +1,128 @@
+<?php
+
+/**
+ * @file
+ * Bulk Select Demo module demonstrates the usage of the bulk_select module.
+ *
+ * This file shows an example form api element. Check the .install file for an
+ * example of a field api widget.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function bulk_select_demo_menu() {
+  $items['admin/bulk_select_demo'] = array(
+    'title' => 'Demonstration of the Bulk Select field',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('bulk_select_demo_demo'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Page callback.
+ *
+ * A demo page for trialing the functionality of the form element.
+ */
+function bulk_select_demo_demo($form, &$form_state) {
+
+  $form['example_field'] = array(
+    '#type' => 'bulk_select',
+    '#options' => bulk_select_demo_options_tree(),
+    '#default_value' => array(2, 10, 14),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#expand_selected' => TRUE,
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+  return $form;
+}
+
+/**
+ * Form submit callback.
+ */
+function bulk_select_demo_demo_submit(&$form, &$form_state) {
+  drupal_set_message(print_r($form_state['values']['example_field'], 1));
+  $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * An example of a formatted array.
+ *
+ * Similar to bulk_select_demo_options_tree but without any nesting.
+ *
+ * @return array
+ *   Flat array of select options.
+ */
+function bulk_select_demo_options_flat() {
+  return array(
+    1 => 'Group 1',
+    2 => 'Group 2',
+    3 => 'Group 3',
+    4 => 'Group 4',
+    5 => 'Group 5',
+    6 => 'Group 6',
+    7 => 'Group 7',
+    8 => 'Group 8',
+    9 => 'Group 9',
+    10 => 'Group 10',
+    11 => 'Group 11',
+    12 => 'Group 12',
+    13 => 'Group 13',
+    14 => 'Group 14',
+    15 => 'Group 15',
+    16 => 'Group 16',
+    17 => 'Group 17',
+    18 => 'Group 18',
+  );
+}
+
+/**
+ * An example of a formatted array.
+ *
+ * Similar to bulk_select_demo_options_flat but with nesting.
+ *
+ * @return array
+ *   Nested array of select options.
+ */
+function bulk_select_demo_options_tree() {
+  return array(
+    1 => 'Group 1',
+    2 => 'Group 2',
+    3 => 'Group 3',
+    'Client 1' => array(
+      'Project 1' => array(
+        4 => 'Group 4',
+        5 => 'Group 5',
+        6 => 'Group 6',
+      ),
+      'Project 2' => array(
+        7 => 'Group 7',
+        8 => 'Group 8',
+        9 => 'Group 9',
+      ),
+    ),
+    'Client 2' => array(
+      10 => 'Group 10',
+      11 => 'Group 11',
+      12 => 'Group 12',
+      'Project 1' => array(
+        13 => 'Group 13',
+        14 => 'Group 14',
+        15 => 'Group 15',
+      ),
+      'Project 2' => array(
+        16 => 'Group 16',
+        17 => 'Group 17',
+        18 => 'Group 18',
+      ),
+    ),
+  );
+}

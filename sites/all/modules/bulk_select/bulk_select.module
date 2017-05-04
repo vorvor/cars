@@ -1,0 +1,493 @@
+<?php
+
+/**
+ * @file
+ * Bulk Select module provides a form element for nested checkboxes.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function bulk_select_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#bulk_select':
+      $filepath = dirname(__FILE__) . '/README.txt';
+      if (file_exists($filepath)) {
+        $readme = file_get_contents($filepath);
+      }
+      else {
+        return NULL;
+      }
+      if (module_exists('markdown')) {
+        $filters = module_invoke('markdown', 'filter_info');
+        $info = $filters['filter_markdown'];
+
+        if (function_exists($info['process callback'])) {
+          $output = $info['process callback']($readme, NULL);
+        }
+        else {
+          $output = '<pre>' . $readme . '</pre>';
+        }
+      }
+      else {
+        $output = '<pre>' . $readme . '</pre>';
+      }
+
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_element_info().
+ */
+function bulk_select_element_info() {
+  $types['bulk_select'] = array(
+    '#input' => TRUE,
+    '#process' => array('bulk_select_element_process'),
+    '#theme_wrappers' => array('bulk_select'),
+    '#pre_render' => array('form_pre_render_conditional_form_element'),
+    '#value_callback' => 'bulk_select_form_type_bulk_select_value',
+    '#element_validate' => array('bulk_select_validate'),
+  );
+  return $types;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function bulk_select_theme() {
+  return array(
+    'bulk_select' => array(
+      'render element' => 'element',
+    ),
+  );
+}
+
+/**
+ * Process the form element.
+ *
+ * @param array $element
+ *   The unprocessed form element.
+ *
+ * @return array
+ *   The processed form element.
+ */
+function bulk_select_element_process(array $element) {
+  $default_options = array(
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#expand_selected' => TRUE,
+  );
+  $element = array_merge($default_options, $element);
+  $value = is_array($element['#value']) ? $element['#value'] : array();
+  $element['#tree'] = TRUE;
+  $element['#attached']['css'][] = drupal_get_path('module', 'bulk_select') . '/bulk_select.css';
+  $element['#attached']['js'][] = drupal_get_path('module', 'bulk_select') . '/bulk_select.js';
+
+  // $element['#options'] should only have lowest-level items to avoid
+  // validation errors. We will put our full array into $element['#items']
+  // instead.
+  $element['#items'] = $element['#options'];
+  $flat_array = array();
+  array_walk_recursive($element['#options'], function($a, $b) use (&$flat_array) {
+    $flat_array[$b] = $a;
+  });
+  $element['#options'] = $flat_array;
+
+  if (count($element['#options']) > 0) {
+    if (!isset($element['#default_value']) || $element['#default_value'] == 0) {
+      $element['#default_value'] = array();
+    }
+    $weight = 0;
+    $level = 1;
+    $new_elements = bulk_select_element_process_recursive($element, $weight, $level, $element['#items'], $value);
+    $element[] = $new_elements;
+  }
+  return $element;
+}
+
+/**
+ * Process each level of the element.
+ *
+ * @param array &$element
+ *   The form element.
+ * @param float &$weight
+ *   Weight gets incremented with each sub element.
+ * @param int &$level
+ *   Keeps track of the current tree depth.
+ * @param array $choices
+ *   All options.
+ * @param array $value
+ *   Selected values.
+ *
+ * @return array
+ *   A set of sub-elements to be appended to the element.
+ */
+function bulk_select_element_process_recursive(array &$element, &$weight, &$level, array $choices, array $value) {
+  $new_elements = array();
+  foreach ($choices as $key => $choice) {
+    if ($key === 0) {
+      $key = '0';
+    }
+    $weight += 0.001;
+
+    // Collapsible fieldsets.
+    $classes = '';
+    if (!empty($element['#collapsible'])) {
+      $classes .= ' collapsible';
+      if (!empty($element['#collapsed'])) {
+        $classes .= ' collapsed';
+      }
+      if (!empty($element['#expand_selected'])) {
+        $classes .= ' expand-selected';
+      }
+    }
+
+    if (is_array($choice)) {
+      // Output a nesting label.
+      $label = $key;
+      $key = 'bulk_select_' . $level . '.' . $key;
+      $new_elements[$key]['#weight'] = $weight;
+      $new_elements[$key]['nesting_label'] = array(
+        '#type' => 'item',
+        '#markup' => '<div class="nesting-label' . $classes . '">' . $label . '</div>',
+      );
+      // Recurse through children.
+      $level++;
+      $new_elements[$key]['children'] = bulk_select_element_process_recursive($element, $weight, $level, $choice, $value);
+      $new_elements[$key]['children']['#prefix'] = '<div class="nested level-' . $level . '">';
+      $new_elements[$key]['children']['#suffix'] = '</div>';
+      $level--;
+    }
+    else {
+      // We are at the lowest level - Output a real checkbox.
+      // @todo: Use radio buttons when #multiple = false.
+      $new_elements += array($key => array());
+      $new_elements[$key] += array(
+        '#type' => 'checkbox',
+        '#title' => $choice,
+        '#return_value' => $key,
+        '#default_value' => isset($value[$key]) ? $key : NULL,
+        '#attributes' => $element['#attributes'],
+        '#ajax' => isset($element['#ajax']) ? $element['#ajax'] : NULL,
+        '#weight' => $weight,
+      );
+    }
+  }
+  return $new_elements;
+}
+
+
+/**
+ * Determines the value for a bulk_select form element.
+ *
+ * @param array $element
+ *   The form element whose value is being populated.
+ * @param array $input
+ *   (optional) The incoming input to populate the form element. If this is FALSE,
+ *   the element's default value should be returned.
+ *
+ * @return array
+ *   The data that will appear in the $element_state['values'] collection
+ *   for this element. Return nothing to use the default.
+ */
+function bulk_select_form_type_bulk_select_value(array $element, $input = FALSE) {
+  if ($input === FALSE) {
+    $value = array();
+    $element += array('#default_value' => array());
+    foreach ($element['#default_value'] as $key) {
+      $value[$key] = $key;
+    }
+    return $value;
+  }
+  elseif (is_array($input)) {
+    $flat_array = array();
+    array_walk_recursive($input, function($a, $b) use (&$flat_array) {
+      $flat_array[$b] = $a;
+    });
+    $input = $flat_array;
+    // Programmatic form submissions use NULL to indicate that a checkbox
+    // should be unchecked; see drupal_form_submit(). We therefore remove all
+    // NULL elements from the array before constructing the return value, to
+    // simulate the behavior of web browsers (which do not send unchecked
+    // checkboxes to the server at all). This will not affect non-programmatic
+    // form submissions, since all values in $_POST are strings.
+    foreach ($input as $key => $value) {
+      if (!isset($value)) {
+        unset($input[$key]);
+      }
+    }
+    return drupal_map_assoc($input);
+  }
+  else {
+    return array();
+  }
+}
+
+/**
+ * Returns HTML for a bulk_select set of checkbox form elements.
+ *
+ * @param array $variables
+ *   An associative array containing:
+ *   - element: An associative array containing the properties of the element.
+ *     Properties used: #children, #attributes.
+ *
+ * @ingroup themeable
+ */
+function theme_bulk_select(array $variables) {
+  $element = $variables['element'];
+  $attributes = array();
+  if (isset($element['#id'])) {
+    $attributes['id'] = $element['#id'];
+  }
+  $attributes['class'][] = 'form-checkboxes form-bulk-select';
+  if (!empty($element['#attributes']['class'])) {
+    $attributes['class'] = array_merge($attributes['class'], $element['#attributes']['class']);
+  }
+  if (isset($element['#attributes']['title'])) {
+    $attributes['title'] = $element['#attributes']['title'];
+  }
+  return '<div' . drupal_attributes($attributes) . '>' . (!empty($element['#children']) ? $element['#children'] : '') . '</div>';
+}
+
+/**
+ * Element validate callback from #element_validate.
+ */
+function bulk_select_validate(array $element, &$form_state, $form) {
+  $t = get_t();
+  $not_validated = !isset($element['#validated']) || !$element['#validated'];
+  $needs_validation = isset($element['#needs_validation']);
+  $has_options = isset($element['#options']);
+  $has_values = isset($element['#value']) && is_array($element['#value']);
+  if ($not_validated && $needs_validation && $has_options && $has_values) {
+    $options = $element['#options'];
+    $value = array_keys($element['#value']);
+    foreach ($value as $v) {
+      if (!isset($options[$v])) {
+        form_error($element, $t('An illegal choice has been detected. Please contact the site administrator.'));
+        watchdog('form', 'Illegal choice %choice in !name element.', array(
+          '%choice' => $v,
+          '!name' => empty($element['#title']) ? $element['#parents'][0] : $element['#title'],
+        ), WATCHDOG_ERROR);
+      }
+    }
+  }
+
+  // We don't want the tree of elements to be returned in $form_state['values'].
+  $items = (array) $element['#value'];
+  form_set_value($element, $items, $form_state);
+}
+
+/**
+ * Implements hook_field_widget_info().
+ */
+function bulk_select_field_widget_info() {
+  return array(
+    'bulk_select' => array(
+      'label' => t('Bulk Select'),
+      'description' => t('Nested checkboxes'),
+      'field types' => array('list_integer', 'list_float', 'list_text'),
+      'settings' => array(
+        'allowed_values_tree_callback' => NULL,
+      ),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function bulk_select_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+
+  // We don't currently support radio buttons, so multiple must be true.
+  if ($field['cardinality'] > 1 || $field['cardinality'] == FIELD_CARDINALITY_UNLIMITED) {
+
+    // Abstract over the actual field columns, to allow different field types to
+    // reuse those widgets.
+    $value_key = key($field['columns']);
+
+    $entity_type = $element['#entity_type'];
+    $entity = $element['#entity'];
+
+    if (!empty($instance['widget']['settings']['allowed_values_tree_callback'])) {
+      $function = $instance['widget']['settings']['allowed_values_tree_callback'];
+      if (function_exists($function)) {
+        $options = $function($field, $instance, $entity_type, $entity);
+      }
+    }
+
+    if (!isset($options)) {
+      // Retrieve the list of options. We use the options_list hook so we can
+      // use the existing field types from list.module.
+      $options = (array) module_invoke($field['module'], 'options_list', $field, $instance, $entity_type, $entity);
+    }
+
+    // Sanitize the options.
+    _bulk_select_prepare_options($options);
+
+    // Put current field values in shape.
+    $default_value = _bulk_select_storage_to_form($items, $options, $value_key);
+
+    // If required and there is one single option, preselect it.
+    if ($element['#required'] && count($options) == 1) {
+      reset($options);
+      $default_value = array(key($options));
+    }
+
+    $element += array(
+      '#type' => 'bulk_select',
+      '#default_value' => $default_value,
+      '#options' => $options,
+    );
+
+    $element += array(
+      '#value_key' => $value_key,
+      '#element_validate' => array('bulk_select_field_widget_validate'),
+    );
+  }
+
+  return $element;
+}
+
+/**
+ * Form element validation handler for options element.
+ */
+function bulk_select_field_widget_validate($element, &$form_state) {
+  if ($element['#required'] && $element['#value'] == '_none') {
+    form_error($element, t('!name field is required.', array('!name' => $element['#title'])));
+  }
+  // Transpose selections from field => delta to delta => field, turning
+  // multiple selected options into multiple parent elements.
+  $items = _bulk_select_form_to_storage($element);
+  form_set_value($element, $items, $form_state);
+}
+
+/**
+ * Recursively sanitize the options.
+ *
+ * @param array &$options
+ *   The options to be sanitized.
+ */
+function _bulk_select_prepare_options(array &$options) {
+  foreach ($options as $value => $label) {
+    if (is_array($label)) {
+      _bulk_select_prepare_options($options[$value]);
+    }
+    else {
+      $options[$value] = field_filter_xss($label);
+    }
+  }
+}
+
+/**
+ * Transforms stored field values into the format the widget needs.
+ *
+ * @param array $items
+ *   Unprocessed values.
+ * @param array $options
+ *   Allowed values.
+ * @param string $column
+ *   The value key. E.g. "value".
+ *
+ * @return array
+ *   Processed values.
+ */
+function _bulk_select_storage_to_form(array $items, array $options, $column) {
+  $items_transposed = bulk_select_array_transpose($items);
+  $values = (isset($items_transposed[$column]) && is_array($items_transposed[$column])) ? $items_transposed[$column] : array();
+
+  // Discard values that are not in the current list of options. Flatten the
+  // array if needed.
+  $options = bulk_select_array_flatten($options);
+
+  $values = array_values(array_intersect($values, array_keys($options)));
+  return $values;
+}
+
+
+/**
+ * Transforms submitted form values into field storage format.
+ *
+ * @param array $element
+ *   The form element.
+ *
+ * @return array
+ *   Processed values.
+ */
+function _bulk_select_form_to_storage(array $element) {
+  $values = array_values((array) $element['#value']);
+
+  // Make sure we populate at least an empty value.
+  if (empty($values)) {
+    $values = array(NULL);
+  }
+
+  $result = bulk_select_array_transpose(array($element['#value_key'] => $values));
+  return $result;
+}
+
+
+/**
+ * Manipulates a 2D array to reverse rows and columns.
+ *
+ * The default data storage for fields is delta first, column names second.
+ * This is sometimes inconvenient for field modules, so this function can be
+ * used to present the data in an alternate format.
+ *
+ * @param array $array
+ *   The array to be transposed. It must be at least two-dimensional, and
+ *   the subarrays must all have the same keys or behavior is undefined.
+ *
+ * @return array
+ *   The transposed array.
+ */
+function bulk_select_array_transpose(array $array) {
+  $result = array();
+  if (is_array($array)) {
+    foreach ($array as $key1 => $value1) {
+      if (is_array($value1)) {
+        foreach ($value1 as $key2 => $value2) {
+          if (!isset($result[$key2])) {
+            $result[$key2] = array();
+          }
+          $result[$key2][$key1] = $value2;
+        }
+      }
+    }
+  }
+  return $result;
+}
+
+/**
+ * Flattens an array of allowed values.
+ *
+ * @param array $array
+ *   A single or multidimensional array.
+ *
+ * @return array
+ *   A flattened array.
+ */
+function bulk_select_array_flatten(array $array) {
+  $result = array();
+  if (is_array($array)) {
+    foreach ($array as $key => $value) {
+      if (is_array($value)) {
+        $result += bulk_select_array_flatten($value);
+      }
+      else {
+        $result[$key] = $value;
+      }
+    }
+  }
+  return $result;
+}
+
+/**
+ * Implements hook_field_widget_error().
+ */
+function bulk_select_field_widget_error($element, $error, $form, &$form_state) {
+  form_error($element, $error['message']);
+}

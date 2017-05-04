@@ -1,0 +1,53 @@
+<?php
+
+/**
+ * @file
+ * Bulk Select Demo module demonstrates the usage of the bulk_select module.
+ *
+ * This file shows an example field api widget on a new user field.
+ * Check the .module file for an example of a form api element.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function bulk_select_demo_install() {
+  $t = get_t();
+
+  $field = array(
+    'field_name'  => 'demo_field',
+    'type'        => 'list_integer',
+    // Unlimited cardinality is equivalent to #multiple = true.
+    'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+    'settings'    => array(
+      'allowed_values' => array(),
+      'allowed_values_function' => 'bulk_select_demo_options_flat',
+    ),
+  );
+  field_create_field($field);
+
+  $instance = array(
+    'entity_type' => 'user',
+    'bundle' => 'user',
+    'field_name' => 'demo_field',
+    'label'       => $t('Demo Field'),
+    'widget'      => array(
+      'type'    => 'bulk_select',
+      'settings' => array(
+        'allowed_values_tree_callback' => 'bulk_select_demo_options_tree',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+}
+
+
+/**
+ * Implements hook_uninstall().
+ */
+function bulk_select_demo_uninstall() {
+  if ($instance = field_info_instance('user', 'demo_field', 'user')) {
+    field_delete_instance($instance);
+  }
+  field_purge_batch(1000);
+}

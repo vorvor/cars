@@ -1,0 +1,232 @@
+body {
+  background: #252525; }
+
+.panels-flexible-2 .panels-flexible-row {
+  padding: 0;
+  margin: 0; }
+
+.header {
+  background: #252525;
+  color: #ddd;
+  padding: 10px 10px 5px 10px !important; }
+  .header a {
+    color: #ddd; }
+  .header div.panel-pane {
+    float: left; }
+  .header .pane-page-logo {
+    width: 128px; }
+  .header ul.menu li.is-active-trail a {
+    color: #63bbff; }
+  .header ul.menu li:nth-child(5), .header ul.menu li:nth-child(6) {
+    margin: 0 10px; }
+    .header ul.menu li:nth-child(5) a, .header ul.menu li:nth-child(6) a {
+      text-decoration: none;
+      color: #fff;
+      background: #1275e6;
+      padding: 5px 15px;
+      -webkit-border-radius: 4px;
+      -moz-border-radius: 4px;
+      border-radius: 4px; }
+  .header ul.menu li:nth-child(4)::after,
+  .header ul.menu li:nth-child(5)::after,
+  .header ul.menu li:nth-child(6)::after {
+    content: none; }
+
+.pane-system-main-menu ul li {
+  display: inline;
+  list-style: none; }
+  .pane-system-main-menu ul li a {
+    text-decoration: none; }
+.pane-system-main-menu ul li::after {
+  content: " | "; }
+
+.quick-search-links ul.menu {
+  list-style-type: none;
+  padding: 0 0 0 10px;
+  height: 7px;
+  float: right; }
+  .quick-search-links ul.menu li {
+    list-style-image: none;
+    list-style-type: none;
+    float: left;
+    margin-left: 15px; }
+    .quick-search-links ul.menu li a {
+      text-decoration: none;
+      color: #fff;
+      background: #1275e6;
+      padding: 5px 15px;
+      -webkit-border-radius: 4px;
+      -moz-border-radius: 4px;
+      border-radius: 4px; }
+
+.car-search-options {
+  background: #252525;
+  margin-bottom: 9px !important; }
+  .car-search-options .pane-title {
+    color: #eee;
+    font-size: 0.8em; }
+  .car-search-options form {
+    padding-left: 10px; }
+  .car-search-options .pane-block {
+    height: 72px;
+    margin: 6px 3px; }
+    .car-search-options .pane-block .form-item {
+      margin: 0; }
+  .car-search-options .panels-flexible-region-inside {
+    padding-right: 0;
+    padding-left: 0; }
+  .car-search-options .facetapi-slider {
+    width: 90%;
+    margin: 0 auto; }
+  .car-search-options .facetapi-slider-min,
+  .car-search-options .facetapi-slider-max {
+    font-size: 0.8em;
+    color: #eee;
+    padding-left: 18px; }
+  .car-search-options .facetapi-slider-max {
+    padding-right: 18px; }
+  .car-search-options .pane-search-api-saved-searches-cars select,
+  .car-search-options .form-submit {
+    float: left;
+    margin-right: 10px; }
+  .car-search-options .form-submit {
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    height: 26px;
+    padding: 0px 6px;
+    line-height: 1em; }
+  .car-search-options #search-api-saved-searches-save-form-wrapper label {
+    display: none; }
+  .car-search-options #reset-search {
+    text-align: center; }
+    .car-search-options #reset-search a {
+      text-decoration: none;
+      color: #fff;
+      background: #1275e6;
+      padding: 5px 8px;
+      -webkit-border-radius: 4px;
+      -moz-border-radius: 4px;
+      border-radius: 4px; }
+
+.view-cars .view-content, .view-my-cars .view-content {
+  clear: both;
+  padding-top: 10px; }
+.view-cars ul.pager, .view-my-cars ul.pager {
+  margin: 0px 5px 0px 5px; }
+  .view-cars ul.pager li, .view-my-cars ul.pager li {
+    display: block;
+    float: left;
+    border: 1px solid #aaa;
+    padding: 4px;
+    width: 30px;
+    margin-left: -1px;
+    font-weight: normal; }
+    .view-cars ul.pager li a, .view-my-cars ul.pager li a {
+      text-decoration: none;
+      color: #222; }
+  .view-cars ul.pager li.pager-current, .view-my-cars ul.pager li.pager-current {
+    background: #1275e6;
+    color: #fff; }
+  .view-cars ul.pager li.pager-first,
+  .view-cars ul.pager li.pager-previous,
+  .view-cars ul.pager li.pager-last,
+  .view-cars ul.pager li.pager-next, .view-my-cars ul.pager li.pager-first,
+  .view-my-cars ul.pager li.pager-previous,
+  .view-my-cars ul.pager li.pager-last,
+  .view-my-cars ul.pager li.pager-next {
+    width: 100px; }
+.view-cars .views-exposed-form, .view-my-cars .views-exposed-form {
+  float: right; }
+  .view-cars .views-exposed-form .views-exposed-widget label, .view-my-cars .views-exposed-form .views-exposed-widget label {
+    display: none; }
+  .view-cars .views-exposed-form .views-exposed-widget .form-submit, .view-my-cars .views-exposed-form .views-exposed-widget .form-submit {
+    margin-top: 0; }
+.view-cars .views-field-view-node a, .view-my-cars .views-field-view-node a {
+  display: block;
+  background: url("/sites/all/themes/ecdh/images-source/next.png") no-repeat;
+  width: 30px;
+  height: 30px;
+  background-size: 60%;
+  text-indent: -9999px;
+  float: right; }
+.view-cars .views-row, .view-my-cars .views-row {
+  width: 30%;
+  margin: 0 10px 20px 0;
+  float: left; }
+
+.view-fuel-stations-on-map .view-header a,
+.view-fuel-stations .view-header a,
+.views-field-ops a {
+  text-decoration: none;
+  color: #fff;
+  background: #1275e6;
+  padding: 5px 8px;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px; }
+
+h2.pane-title::before {
+  content: "";
+  position: absolute;
+  width: 15px;
+  height: 30px;
+  -webkit-transform: skew(-20deg);
+  -moz-transform: skew(-20deg);
+  -o-transform: skew(-20deg);
+  background: #1275e6;
+  margin-left: -30px; }
+
+h2.pane-title {
+  padding-left: 50px;
+  color: #333; }
+
+body.node-type-car h2.pane-title {
+  color: #eee; }
+
+.node-car .field {
+  float: left;
+  width: 19%;
+  color: #eee; }
+  .node-car .field .field-label {
+    color: #839098;
+    text-transform: uppercase;
+    font-weight: normal;
+    border-bottom: 1px solid #839098;
+    font-size: 14px;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+    width: 80%; }
+.node-car .field-name-field-images {
+  width: 40%;
+  margin: 10px; }
+.node-car .comment-wrapper, .node-car .links.inline {
+  clear: both;
+  color: #eee; }
+
+.panels-flexible-row-last {
+  background: #f1f1f1; }
+
+body.node-type-car .panels-flexible-row-last {
+  background: #252525; }
+
+.pane-commerce-cart-cart {
+  background: #aaa;
+  position: absolute;
+  right: 0;
+  border: 1px solid #ccc;
+  padding: 5px;
+  width: 25%; }
+  .pane-commerce-cart-cart .pane-title {
+    font-size: 1em;
+    padding: 0;
+    margin: 0; }
+  .pane-commerce-cart-cart .pane-title::before {
+    content: none; }
+
+.view-store .views-row {
+  width: 30%;
+  float: left;
+  margin-right: 10px; }
+
+/*# sourceMappingURL=style.css.map */

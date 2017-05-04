@@ -1,0 +1,12 @@
+name = Bulk Select Demo
+description = Example of the bulk-select module
+core = 7.x
+configure = admin/bulk_select_demo
+dependencies[] = bulk_select
+
+; Information added by Drupal.org packaging script on 2016-05-31
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "bulk_select"
+datestamp = "1464687540"
+

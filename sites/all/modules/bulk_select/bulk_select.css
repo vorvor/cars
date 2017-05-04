@@ -1,0 +1,12 @@
+/**
+ * @file
+ * CSS for bulk_select.
+ */
+
+.form-bulk-select .nested {
+  padding-left: 20px;
+}
+
+.form-bulk-select .nesting-label {
+  font-weight: bold;
+}

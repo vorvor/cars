@@ -1,0 +1,13 @@
+name = Bulk Select
+description = A form element that makes hirearchical selections a breeze
+core = 7.x
+dependencies[] = list
+dependencies[] = options
+dependencies[] = jquery_update
+
+; Information added by Drupal.org packaging script on 2016-05-31
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "bulk_select"
+datestamp = "1464687540"
+
